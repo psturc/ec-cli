@@ -111,6 +111,8 @@ jobs:
         run: |
           echo "[Sealights] Configuring SeaLights to scan the main branch after pull request was closed"
           ./slcli config create-bsid --app ec-cli --branch main --build ${LATEST_COMMIT_SHA}
+        env:
+          LATEST_COMMIT_SHA: ${{ github.sha }}
 
       - name: Run the SeaLights scan
         run: |
