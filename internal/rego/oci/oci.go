@@ -265,7 +265,7 @@ func ociBlob(bctx rego.BuiltinContext, a *ast.Term) (*ast.Term, error) {
 		logger.WithFields(log.Fields{
 			"action": "fetch layer",
 			"error":  err,
-		}).Error("failed to fetch OCI layer")
+		}).Error("change to test")
 		return nil, nil
 	}
 
