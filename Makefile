@@ -113,11 +113,12 @@ acceptance: ## Run all acceptance tests
 	trap cleanup EXIT; \
 	cp -R . "$$ACCEPTANCE_WORKDIR"; \
 	cd "$$ACCEPTANCE_WORKDIR" && \
-	go run acceptance/coverage/coverage.go && \
 	$(MAKE) build && \
 	export COVERAGE_FILEPATH="$$ACCEPTANCE_WORKDIR"; \
 	export COVERAGE_FILENAME="-acceptance"; \
-	cd acceptance && go test -coverprofile "$$ACCEPTANCE_WORKDIR/coverage-acceptance.out" -timeout $(ACCEPTANCE_TIMEOUT) ./... && \
+	export SEALIGHTS_LOG_LEVEL="none"; \
+	echo "[Debug] SEALIGHTS_LOG_LEVEL=$${SEALIGHTS_LOG_LEVEL}"; \
+	cd acceptance && SEALIGHTS_LOG_LEVEL=none go test -coverprofile "$$ACCEPTANCE_WORKDIR/coverage-acceptance.out" -timeout $(ACCEPTANCE_TIMEOUT) ./... && \
 	go run -modfile "$$ACCEPTANCE_WORKDIR/tools/go.mod" github.com/wadey/gocovmerge "$$ACCEPTANCE_WORKDIR/coverage-acceptance.out" > "$(ROOT_DIR)/coverage-acceptance.out"
 
 # Add @focus above the feature you're hacking on to use this
