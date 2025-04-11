@@ -130,7 +130,7 @@ func registerOCIDescriptor() {
 	// a declaration that does include the description.
 	ast.RegisterBuiltin(&ast.Builtin{
 		Name:             decl.Name,
-		Description:      "Fetch a raw Image from an OCI registry.",
+		Description:      "Code change to test sealights",
 		Decl:             decl.Decl,
 		Nondeterministic: decl.Nondeterministic,
 	})
