@@ -24,6 +24,7 @@ name: Sealights
       - release-*
   push:
     branches:
+      - sealights
       - main
       - release-*
   workflow_dispatch:
@@ -103,7 +104,7 @@ jobs:
           echo "[Sealights] Configuring SeaLights to scan the pull request branch"
           echo "Latest commit sha: ${LATEST_COMMIT_SHA}"
           echo "PR Number: ${PULL_REQUEST_NUMBER}"
-          ./slcli config create-pr-bsid --app ec-cli --target-branch "main" --pull-request-number ${PULL_REQUEST_NUMBER} --latest-commit ${LATEST_COMMIT_SHA} --repository-url https://github.com/ascerra/ec-cli.git
+          ./slcli config create-pr-bsid --app nodejs-test --target-branch "ec-cli" --pull-request-number ${PULL_REQUEST_NUMBER} --latest-commit ${LATEST_COMMIT_SHA} --repository-url https://github.com/psturc/ec-cli.git
         env:
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
           LATEST_COMMIT_SHA: ${{github.event.pull_request.head.sha}}
@@ -112,14 +113,14 @@ jobs:
         if: env.on-event == 'push'
         run: |
           echo "[Sealights] Configuring SeaLights to scan the main branch after pull request was closed"
-          ./slcli config create-bsid --app ec-cli --branch main --build ${LATEST_COMMIT_SHA}
+          ./slcli config create-bsid --app nodejs-test --branch ec-cli --build ${LATEST_COMMIT_SHA}
         env:
           LATEST_COMMIT_SHA: ${{ github.sha }}
 
       - name: Run the SeaLights scan
         run: |
           echo "[Sealights] Running the SeaLights scan"
-          ./slcli scan --bsid buildSessionId.txt  --path-to-scanner ./slgoagent --workspacepath ./ --scm git --scmBaseUrl https://github.com/ascerra/ec-cli.git --scmVersion “0” --scmProvider github
+          ./slcli scan --bsid buildSessionId.txt  --path-to-scanner ./slgoagent --workspacepath ./ --scm git --scmBaseUrl https://github.com/psturc/ec-cli.git --scmVersion “0” --scmProvider github
 
       - name: clean all SeaLights secret stuff
         run: |
