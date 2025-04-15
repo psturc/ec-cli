@@ -136,7 +136,7 @@ jobs:
 
   Test:
     runs-on: ubuntu-latest
-    needs: Acceptance
+    needs: Initialize
     steps:          
       - name: Restore workspace
         uses: actions/cache@v4
@@ -158,7 +158,7 @@ jobs:
 
   Acceptance:
     runs-on: ubuntu-latest
-    needs: Initialize
+    needs: Test
     env:
       BSID: ${{ needs.Initialize.outputs.bsid }}
       SEALIGHTS_LOG_LEVEL: none
