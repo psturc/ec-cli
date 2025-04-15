@@ -119,7 +119,7 @@ acceptance: ## Run all acceptance tests
 	export SEALIGHTS_LOG_LEVEL="none"; \
 	echo "[Debug] SEALIGHTS_LOG_LEVEL=$${SEALIGHTS_LOG_LEVEL}"; \
 	echo "[Debug] SEALIGHTS_CONNECTION_TIMEOUT=$${SEALIGHTS_CONNECTION_TIMEOUT}"; \
-	cd acceptance && SEALIGHTS_LOG_LEVEL=none go test -coverprofile "$$ACCEPTANCE_WORKDIR/coverage-acceptance.out" -timeout $(ACCEPTANCE_TIMEOUT) ./... && \
+	cd acceptance && SEALIGHTS_LOG_LEVEL=none go test -p 1 -coverprofile "$$ACCEPTANCE_WORKDIR/coverage-acceptance.out" -timeout $(ACCEPTANCE_TIMEOUT) ./... && \
 	go run -modfile "$$ACCEPTANCE_WORKDIR/tools/go.mod" github.com/wadey/gocovmerge "$$ACCEPTANCE_WORKDIR/coverage-acceptance.out" > "$(ROOT_DIR)/coverage-acceptance.out"
 
 # Add @focus above the feature you're hacking on to use this

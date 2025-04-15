@@ -24,7 +24,6 @@ name: Sealights
       - release-*
   push:
     branches:
-      - sealights
       - main
       - release-*
   workflow_dispatch:
