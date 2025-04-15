@@ -1,4 +1,3 @@
-@focus
 Feature: init policies command
   The ec init policies command should work as expected
 
