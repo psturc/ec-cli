@@ -174,7 +174,22 @@ jobs:
         run: |
           "${GITHUB_WORKSPACE}/hack/ubuntu-podman-update.sh"
 
+      - name: Create a test session
+        run: ./slcli test start-stage --bsid=$(< buildSessionId.txt) --testStage "acceptance"
+
       - name: Acceptance test
+        id: make-acceptance
         run: make acceptance
 
+      - name: Upload test results, end test session and fail the job (if tests failed)
+        if: success() || failure()
+        run: |
+          ./slcli test upload-reports --bsid=$(< buildSessionId.txt ) --report-location ./acceptance.xml
+          ./slcli test end-stage --bsid=$(< buildSessionId.txt) --executionId "acceptance"
+          if [ "$ACCEPTANCE_TEST_OUTCOME" = "failure" ]; then
+            echo "Acceptance tests failed, see the previous step for more details"
+            exit 1
+          fi
+        env:
+          ACCEPTANCE_TEST_OUTCOME: ${{ steps.make-acceptance.outcome }}
  
