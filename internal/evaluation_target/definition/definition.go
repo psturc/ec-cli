@@ -1,4 +1,4 @@
-// Copyright The Enterprise Contract Contributors
+// Copyright The Conforma Contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ type Definition struct {
 	Evaluator evaluator.Evaluator
 }
 
-// NewPipelineDefinitionFile returns a DefinitionFile struct with FPath and evaluator ready to use
+// NewDefinition returns a Definition struct with FPath and evaluator ready to use
 func NewDefinition(ctx context.Context, fpath []string, sources []source.PolicySource, namespace []string) (*Definition, error) {
 	p := &Definition{
 		Fpath: fpath,

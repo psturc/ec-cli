@@ -11,7 +11,7 @@ ALL_SUPPORTED_IMG_OS_ARCH:=$(filter-out $(UNSUPPORTED_OS_ARCH_IMG),$(subst dist/
 _SHELL := bash
 SHELL=$(if $@,$(info ❱ [1m$@[0m))$(_SHELL)
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-COPY:=The Enterprise Contract Contributors
+COPY:=The Conforma Contributors
 COSIGN_VERSION=$(shell go list -f '{{.Version}}' -m github.com/sigstore/cosign/v2)
 
 ##@ Information
@@ -44,12 +44,18 @@ help: ## Display this help
 generate: ## Code-generate files
 	go generate ./...
 
+# Set DEBUG_BUILD=1 to build a binary with gdb/dlv debugging support
+BUILD_GC_FLAGS=$(if $(DEBUG_BUILD),-gcflags="-N -l",)
+BUILD_TRIMPATH=$(if $(DEBUG_BUILD),,-trimpath)
+BUILD_LD_FLAGS=$(if $(DEBUG_BUILD),,-s -w)
+BUILD_BIN_SUFFIX=$(if $(DEBUG_BUILD),_debug,)
+
 .PHONY: $(ALL_SUPPORTED_OS_ARCH)
 $(ALL_SUPPORTED_OS_ARCH): generate ## Build binaries for specific platform/architecture, e.g. make dist/ec_linux_amd64
 	@GOOS=$(word 2,$(subst _, ,$(notdir $@))); \
 	GOARCH=$(word 3,$(subst _, ,$(notdir $@))); \
-	GOOS=$${GOOS} GOARCH=$${GOARCH} CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X github.com/enterprise-contract/ec-cli/internal/version.Version=$(VERSION)" -o dist/ec_$${GOOS}_$${GOARCH}; \
-	sha256sum -b dist/ec_$${GOOS}_$${GOARCH} > dist/ec_$${GOOS}_$${GOARCH}.sha256
+	GOOS=$${GOOS} GOARCH=$${GOARCH} CGO_ENABLED=0 go build $(BUILD_TRIMPATH) $(BUILD_GC_FLAGS) -ldflags="$(BUILD_LD_FLAGS) -X github.com/enterprise-contract/ec-cli/internal/version.Version=$(VERSION)" -o dist/ec_$${GOOS}_$${GOARCH}$(BUILD_BIN_SUFFIX); \
+	sha256sum -b dist/ec_$${GOOS}_$${GOARCH}$(BUILD_BIN_SUFFIX) > dist/ec_$${GOOS}_$${GOARCH}$(BUILD_BIN_SUFFIX).sha256
 
 .PHONY: dist
 dist: $(ALL_SUPPORTED_OS_ARCH) ## Build binaries for all supported operating systems and architectures
@@ -73,11 +79,15 @@ BUILD_LOCAL_PLATFORM:=$(shell go env GOOS)/$(shell go env GOARCH)
 BUILD_LOCAL_ARCH:=$(shell go env GOOS)_$(shell go env GOARCH)
 .PHONY: build
 build: dist/ec_$(BUILD_LOCAL_ARCH) ## Build the ec binary for the current platform
-	@ln -sf ec_$(BUILD_LOCAL_ARCH) dist/ec
+	@ln -sf ec_$(BUILD_LOCAL_ARCH)$(BUILD_BIN_SUFFIX) dist/ec$(BUILD_BIN_SUFFIX)
 
 BUILD_IMG_ARCH:=$(shell podman version -f {{.Server.OsArch}} | awk -F/ '{print $$1}')_$(shell podman version -f {{.Server.OsArch}} | awk -F/ '{print $$2}')
 .PHONY: build-for-test
 build-for-test: dist/ec_$(BUILD_IMG_ARCH)
+
+# Assume `DEBUG_BUILD=1 make build` was run already
+debug-run:
+	dlv exec dist/ec_$(BUILD_LOCAL_ARCH)_debug # ...params here as required
 
 .PHONY: clean
 clean: ## Delete build output
@@ -298,13 +308,12 @@ dev: push-image task-bundle ## Push the ec-cli and v-e-c Task Bundle to the kind
 
 TASK_TAG ?= latest
 TASK_REPO ?= quay.io/enterprise-contract/ec-task-bundle
-TASK_VERSION ?= 0.1
-TASKS ?= tasks/verify-enterprise-contract/$(TASK_VERSION)/verify-enterprise-contract.yaml
+TASKS ?= tasks/verify-enterprise-contract/0.1/verify-enterprise-contract.yaml,tasks/verify-conforma-konflux-ta/0.1/verify-conforma-konflux-ta.yaml
 ifneq (,$(findstring localhost:,$(TASK_REPO)))
 SKOPEO_ARGS=--src-tls-verify=false --dest-tls-verify=false
 endif
 .PHONY: task-bundle
-task-bundle: ## Push the Tekton Task bundle an image repository
+task-bundle: ## Push the Tekton Task bundle to an image repository
 	@go run -modfile tools/go.mod github.com/tektoncd/cli/cmd/tkn bundle push $(TASK_REPO):$(TASK_TAG) $(addprefix -f ,$(TASKS)) --annotate org.opencontainers.image.revision="$(TASK_TAG)"
 
 .PHONY: task-bundle-snapshot

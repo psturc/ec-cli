@@ -1,4 +1,4 @@
-// Copyright The Enterprise Contract Contributors
+// Copyright The Conforma Contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import (
 	"github.com/enterprise-contract/ec-cli/internal/evaluator"
 )
 
-// condensedMsg reduces repetitive error messages.
+// CondensedMsg reduces repetitive error messages.
 func CondensedMsg(results []evaluator.Result) map[string][]string {
 	maxErr := 1
 	shortNames := make(map[string][]string)

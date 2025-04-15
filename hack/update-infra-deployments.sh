@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright The Enterprise Contract Contributors
+# Copyright The Conforma Contributors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -55,7 +55,8 @@ REF="${TASK_BUNDLE_REF}" REV="${REVISION}" yq e -i \
             "verify_ec_task_bundle=" + env(REF),
             "verify_ec_task_git_url=https://github.com/enterprise-contract/ec-cli.git",
             "verify_ec_task_git_revision=" + env(REV),
-            "verify_ec_task_git_pathInRepo=tasks/verify-enterprise-contract/0.1/verify-enterprise-contract.yaml"
+            "verify_ec_task_git_pathInRepo=tasks/verify-enterprise-contract/0.1/verify-enterprise-contract.yaml",
+            "verify_conforma_task_ta_git_pathInRepo=tasks/verify-conforma-konflux-ta/0.1/verify-conforma-konflux-ta.yaml"
         ]' \
     components/enterprise-contract/kustomization.yaml
 
