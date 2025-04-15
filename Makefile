@@ -123,12 +123,10 @@ acceptance: ## Run all acceptance tests
 	trap cleanup EXIT; \
 	cp -R . "$$ACCEPTANCE_WORKDIR"; \
 	cd "$$ACCEPTANCE_WORKDIR" && \
-	go run acceptance/coverage/coverage.go && \
 	$(MAKE) build && \
 	export COVERAGE_FILEPATH="$$ACCEPTANCE_WORKDIR"; \
 	export COVERAGE_FILENAME="-acceptance"; \
-	cd acceptance && go test -coverprofile "$$ACCEPTANCE_WORKDIR/coverage-acceptance.out" -timeout $(ACCEPTANCE_TIMEOUT) ./... && \
-	go run -modfile "$$ACCEPTANCE_WORKDIR/tools/go.mod" github.com/wadey/gocovmerge "$$ACCEPTANCE_WORKDIR/coverage-acceptance.out" > "$(ROOT_DIR)/coverage-acceptance.out"
+	cd acceptance && SEALIGHTS_LOG_LEVEL=none go run -modfile "$$ACCEPTANCE_WORKDIR/tools/go.mod" gotest.tools/gotestsum --junitfile "$(ROOT_DIR)/junit-acceptance.xml" -- -parallel 1 -timeout $(ACCEPTANCE_TIMEOUT) ./...
 
 # Add @focus above the feature you're hacking on to use this
 # (Mainly for use with the feature-% target below)
