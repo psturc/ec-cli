@@ -42,7 +42,7 @@ jobs:
     env:
       SEALIGHTS_LOG_LEVEL: none
     outputs:
-      bsid: ${{ steps.set-bsid.outputs.bsid }}
+      bsid: ${{ steps.sealights-scan.outputs.bsid }}
     steps:
       - name: Determine workflow run event context
         run: echo "on-event=${{ github.event_name }}" >> $GITHUB_ENV
@@ -117,9 +117,11 @@ jobs:
           LATEST_COMMIT_SHA: ${{ github.sha }}
 
       - name: Run the SeaLights scan
+        id: sealights-scan
         run: |
           echo "[Sealights] Running the SeaLights scan"
           ./slcli scan --bsid buildSessionId.txt  --path-to-scanner ./slgoagent --workspacepath ./ --scm git --scmBaseUrl https://github.com/psturc/ec-cli.git --scmVersion “0” --scmProvider github
+          echo bsid=$(< buildSessionId.txt) | tee -a "$GITHUB_OUTPUT"
 
       - name: clean all SeaLights secret stuff
         run: |
@@ -178,18 +180,11 @@ jobs:
         run: ./slcli test start-stage --bsid=$BSID --testStage "acceptance tests"
 
       - name: Acceptance test
-        id: make-acceptance
         run: make acceptance
 
-      - name: Upload test results, end test session and fail the job (if tests failed)
+      - name: Upload test results, end test session
         if: success() || failure()
         run: |
           ./slcli test upload-reports --bsid=$BSID --report-location ./acceptance.xml
           ./slcli test end-stage --bsid=$BSID --executionId "acceptance tests"
-          if [ "$ACCEPTANCE_TEST_OUTCOME" = "failure" ]; then
-            echo "Acceptance tests failed, see the previous step for more details"
-            exit 1
-          fi
-        env:
-          ACCEPTANCE_TEST_OUTCOME: ${{ steps.make-acceptance.outcome }}
  
