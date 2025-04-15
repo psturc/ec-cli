@@ -158,10 +158,11 @@ jobs:
 
   Acceptance:
     runs-on: ubuntu-latest
-    needs: Test
+    needs: [Initialize, Test]
     env:
       BSID: ${{ needs.Initialize.outputs.bsid }}
       SEALIGHTS_LOG_LEVEL: none
+      SEALIGHTS_CONNECTION_TIMEOUT: 120s
     steps:
       - name: Restore workspace
         uses: actions/cache@v4

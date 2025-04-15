@@ -126,8 +126,6 @@ acceptance: ## Run all acceptance tests
 	$(MAKE) build && \
 	export COVERAGE_FILEPATH="$$ACCEPTANCE_WORKDIR"; \
 	export COVERAGE_FILENAME="-acceptance"; \
-	export SEALIGHTS_LOG_LEVEL="none"; \
-	echo "[Debug] SEALIGHTS_LOG_LEVEL=$${SEALIGHTS_LOG_LEVEL}"; \
 	cd acceptance && SEALIGHTS_LOG_LEVEL=none go run -modfile "$$ACCEPTANCE_WORKDIR/tools/go.mod" gotest.tools/gotestsum --junitfile "$(ROOT_DIR)/junit-acceptance.xml" -- -parallel 1 -timeout $(ACCEPTANCE_TIMEOUT) ./...
 
 # Add @focus above the feature you're hacking on to use this
