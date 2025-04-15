@@ -129,7 +129,7 @@ acceptance: ## Run all acceptance tests
 	export SEALIGHTS_LOG_LEVEL="none"; \
 	echo "[Debug] SEALIGHTS_LOG_LEVEL=$${SEALIGHTS_LOG_LEVEL}"; \
 	echo "[Debug] SEALIGHTS_CONNECTION_TIMEOUT=$${SEALIGHTS_CONNECTION_TIMEOUT}"; \
-	cd acceptance && SEALIGHTS_LOG_LEVEL=none go run -modfile "$$ACCEPTANCE_WORKDIR/tools/go.mod" gotest.tools/gotestsum --junitfile "$(ROOT_DIR)/acceptance.xml" -- -parallel 1 -timeout $(ACCEPTANCE_TIMEOUT) ./...
+	cd acceptance && SEALIGHTS_LOG_LEVEL=none go run -modfile "$$ACCEPTANCE_WORKDIR/tools/go.mod" gotest.tools/gotestsum --junitfile "$(ROOT_DIR)/junit-acceptance.xml" -- -parallel 1 -timeout $(ACCEPTANCE_TIMEOUT) -tags=acceptance . -args -tags=@focus
 
 # Add @focus above the feature you're hacking on to use this
 # (Mainly for use with the feature-% target below)

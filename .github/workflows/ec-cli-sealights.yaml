@@ -185,6 +185,7 @@ jobs:
       - name: Upload test results, end test session
         if: success() || failure()
         run: |
-          ./slcli test upload-reports --bsid=$BSID --report-location ./acceptance.xml
+          cat ./junit-acceptance.xml
+          ./slcli test upload-reports --bsid=$BSID --report-location ./junit-acceptance.xml
           ./slcli test end-stage --bsid=$BSID --executionId "acceptance tests"
  
