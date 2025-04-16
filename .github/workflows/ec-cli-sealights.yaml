@@ -39,8 +39,10 @@ jobs:
 
   Initialize:
     runs-on: ubuntu-latest
+    env:
+      SEALIGHTS_LOG_LEVEL: none
     outputs:
-      bsid: ${{ steps.set-bsid.outputs.bsid }}
+      bsid: ${{ steps.sealights-scan.outputs.bsid }}
     steps:
       - name: Determine workflow run event context
         run: echo "on-event=${{ github.event_name }}" >> $GITHUB_ENV
@@ -115,10 +117,11 @@ jobs:
           LATEST_COMMIT_SHA: ${{ github.sha }}
 
       - name: Run the SeaLights scan
+        id: sealights-scan
         run: |
           echo "[Sealights] Running the SeaLights scan"
           ./slcli scan --bsid buildSessionId.txt  --path-to-scanner ./slgoagent --workspacepath ./ --scm git --scmBaseUrl https://github.com/ascerra/ec-cli.git --scmVersion “0” --scmProvider github
-
+          echo bsid=$(< buildSessionId.txt) | tee -a "$GITHUB_OUTPUT"
       - name: clean all SeaLights secret stuff
         run: |
           echo "[Sealights] Cleaning up after SeaLights run"
@@ -133,8 +136,6 @@ jobs:
   Test:
     runs-on: ubuntu-latest
     needs: Initialize
-    env:
-      BSID: ${{ needs.Initialize.outputs.bsid }}
     steps:          
       - name: Restore workspace
         uses: actions/cache@v4
@@ -153,4 +154,33 @@ jobs:
 
       - name: Test
         run: make test
- 
+
+  Acceptance:
+    runs-on: ubuntu-latest
+    needs: [Initialize, Test]
+    env:
+      BSID: ${{ needs.Initialize.outputs.bsid }}
+      SEALIGHTS_LOG_LEVEL: none
+      SEALIGHTS_CONNECTION_TIMEOUT: 120s
+    steps:
+      - name: Restore workspace
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}
+          key: workspace-${{ github.run_id }}
+
+      - name: Update podman
+        run: |
+          "${GITHUB_WORKSPACE}/hack/ubuntu-podman-update.sh"
+      - name: Create a test session
+        run: ./slcli test start-stage --bsid=$BSID --testStage "Acceptance Tests"
+
+      - name: Acceptance test
+        run: make acceptance
+
+      - name: Upload test results, end test session
+        if: success() || failure()
+        run: |
+          cat ./junit-acceptance.xml
+          ./slcli test upload-reports --bsid=$BSID --report-location ./junit-acceptance.xml
+          ./slcli test end-stage --bsid=$BSID --executionId "Acceptance Tests"
