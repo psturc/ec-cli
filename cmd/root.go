@@ -27,6 +27,7 @@ import (
 	"github.com/enterprise-contract/ec-cli/cmd/inspect"
 	"github.com/enterprise-contract/ec-cli/cmd/opa"
 	"github.com/enterprise-contract/ec-cli/cmd/root"
+
 	"github.com/enterprise-contract/ec-cli/cmd/sigstore"
 	"github.com/enterprise-contract/ec-cli/cmd/test"
 	"github.com/enterprise-contract/ec-cli/cmd/track"
