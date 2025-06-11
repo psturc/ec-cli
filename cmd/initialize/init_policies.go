@@ -39,6 +39,7 @@ func initPoliciesCmd() *cobra.Command {
 			This command creates the necessary files for a minimal EC policy setup in the
 			specified destination directory.
 
+			
 			More information about authoring policies is available in the Conforma documentation:
 			https://conforma.dev/docs/policy/authoring.html
 		`),
