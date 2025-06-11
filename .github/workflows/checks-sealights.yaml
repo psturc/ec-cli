@@ -101,7 +101,7 @@ jobs:
           echo "[Sealights] Configuring SeaLights to scan the pull request branch"
           echo "Latest commit sha: ${LATEST_COMMIT_SHA}"
           echo "PR Number: ${PULL_REQUEST_NUMBER}"
-          ./slcli config create-pr-bsid --app ec-cli --target-branch "main" --pull-request-number ${PULL_REQUEST_NUMBER} --latest-commit ${LATEST_COMMIT_SHA} --repository-url https://github.com/enterprise-contract/ec-cli.git
+          ./slcli config create-pr-bsid --app nodejs-test --target-branch "ec-cli-test-scan2" --pull-request-number ${PULL_REQUEST_NUMBER} --latest-commit ${LATEST_COMMIT_SHA} --repository-url https://github.com/psturc/ec-cli.git
         env:
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
           LATEST_COMMIT_SHA: ${{github.event.pull_request.head.sha}}
@@ -118,7 +118,7 @@ jobs:
         id: sealights-scan
         run: |
           echo "[Sealights] Running the SeaLights scan"
-          ./slcli scan --bsid buildSessionId.txt  --path-to-scanner ./slgoagent --workspacepath ./ --scm git --scmBaseUrl https://github.com/enterprise-contract/ec-cli.git --scmVersion “0” --scmProvider github
+          ./slcli scan --bsid buildSessionId.txt  --path-to-scanner ./slgoagent --workspacepath ./ --scm git --scmBaseUrl https://github.com/enterprise-contract/ec-cli.git --scmVersion “0” --scmProvider github --packages-excluded "acceptance"
           echo bsid=$(< buildSessionId.txt) | tee -a "$GITHUB_OUTPUT"
       - name: clean all SeaLights secret stuff
         run: |
@@ -131,31 +131,9 @@ jobs:
           path: ${{ github.workspace }}
           key: workspace-${{ github.run_id }}
 
-  Test:
-    runs-on: ubuntu-latest
-    needs: Initialize
-    steps:          
-      - name: Restore workspace
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}
-          key: workspace-${{ github.run_id }}
-
-      - name: Harden Runner
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
-        with:
-          egress-policy: audit
-          disable-telemetry: true
-
-      - name: Generate
-        run: make generate
-
-      - name: Test
-        run: make test
-
   Acceptance:
     runs-on: ubuntu-latest
-    needs: [Initialize, Test]
+    needs: Initialize
     env:
       BSID: ${{ needs.Initialize.outputs.bsid }}
       SEALIGHTS_LOG_LEVEL: none
@@ -171,14 +149,7 @@ jobs:
         run: |
           "${GITHUB_WORKSPACE}/hack/ubuntu-podman-update.sh"
       - name: Create a test session
-        run: ./slcli test start-stage --bsid=$BSID --testStage "Acceptance Tests"
+        run: ./slcli scan --tests-runner --workspacepath "$(pwd)/acceptance" --bsid=$BSID --path-to-scanner ./slgoagent --scm none
 
       - name: Acceptance test
-        run: make acceptance-sealights
-
-      - name: Upload test results, end test session
-        if: success() || failure()
-        run: |
-          cat ./junit-acceptance.xml
-          ./slcli test upload-reports --bsid=$BSID --report-location ./junit-acceptance.xml
-          ./slcli test end-stage --bsid=$BSID --executionId "Acceptance Tests"
+        run: make acceptance
